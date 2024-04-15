@@ -6,6 +6,7 @@ from pybricks.parameters import Port, Stop, Direction, Button, Color
 from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
+import time
 
 
 # This program requires LEGO EV3 MicroPython v2.0 or higher.
@@ -23,22 +24,62 @@ right_motor = Motor(Port.C)
 
 robot = DriveBase(left_motor, right_motor, wheel_diameter=54, axle_track=105)
 
-# Write a program which makes the robot follow a black line.
-# On RED, the robot shall stop.
-# When the line turns blue, the robot shall reduce ist speed until the line becomes black again. 
-
-while True:
-    color = CSensor.color()
-    robot.drive(200,0)    
-
+def linea_drop():
     if color == Color.RED:
-        robot.drive(200,0)         
+        robot.straight(350) 
+        ev3.speaker.beep(frequency=440.00, duration=100)  # A note for dropping items in line A
+        ev3.screen.print('Item dropped!')
+        time.sleep(10) 
 
-    elif color == Color.BLUE:
+def linec_drop():
+    robot.turn(90)
+    if color == Color.BLUE:
+        robot.straight(200)
+        robot.turn(-90)
+        robot.straight(250)
+        robot.turn(90)
+        robot.straight(50)
+        robot.turn(-90)
+        robot.straight(100)
+        ev3.speaker.beep(frequency=329.63, duration=100)  # E note for dropping items in line C
+        ev3.screen.print('Item dropped!')
+        time.sleep(10)         
+
+def lineb_drop():
+    robot.turn(-90)
+    if color == Color.YELLOW:
+        robot.straight(100)
+        robot.turn(90)
+        robot.straight(250)
+        robot.turn(-90)
+        robot.straight(50)
+        robot.turn(90)
+        robot.straight(100)
+        ev3.speaker.beep(frequency=261.63, duration=100)  # C note for dropping items in line B
+        ev3.screen.print('Item dropped!')
+        time.sleep(10) 
+
+def linea_back():
+    if color == Color.RED:
+        robot.turn(180)
+        robot.straight(350) 
         robot.stop()
-        break 
-    
-    elif color == Color.YELLOW:
-        robot.drive(50,0)
-    
-    wait(10)
+
+def linec_back():
+    robot.turn(180)
+    if color == Color.BLUE:
+        robot.straight(100)
+        robot.turn(90)
+        robot.straight(50)
+        robot.turn(-90)
+        robot.straight(250)
+        robot.turn(90)
+        robot.straight(200)
+        robot.turn(90)
+        robot.stop()  
+
+while True:  #if and only if line A is selected
+    color = CSensor.color()
+    linea_drop()
+    linea_back()
+    wait(100)
