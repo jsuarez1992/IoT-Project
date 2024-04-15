@@ -1,51 +1,39 @@
 import tkinter as tk
 from tkinter import ttk
+from threading import Thread
+import time
 
-# Function to perform the selected operation based on dropping station
-def perform_operation():
-    dropping_station = dropping_station_var.get()
-    number1 = 10  # Example number, replace or make inputtable as needed
-    number2 = 5   # Example number, replace or make inputtable as needed
+# Simplified function for testing 
+def run_robot(origin_to, dest_to):
+    print(f"Operation started from {origin_to} to {dest_to}")
+    time.sleep(5)
+    print(f"Operation completed from {origin_to} to {dest_to}")
 
-    if dropping_station == 'Line A':
-        result = number1 * number2
-    elif dropping_station == 'Line B':
-        result = number1 + number2
-    elif dropping_station == 'Line C':
-        result = number1 / number2 if number2 != 0 else 'Error: Division by zero'
+def start_robot_thread(origin_to, dest_to):
+    Thread(target=run_robot, args=(origin_to, dest_to)).start()
 
-    # Update the result label with the result
-    result_label.config(text=f"Result: {result}")
+# GUI Setup
+def setup_gui():
+    root = tk.Tk()
+    root.title("EV3 Robot Controller")
 
-# Set up the main application window
-root = tk.Tk()
-root.title("Operation Selector")
+    origin_to_var = tk.StringVar()
+    origin_to_label = tk.Label(root, text="From:")
+    origin_to_label.pack(pady=5)
+    origin_to_combobox = ttk.Combobox(root, textvariable=origin_to_var, values=['BASE', 'Line A', 'Line B', 'Line C'], state="readonly")
+    origin_to_combobox.pack(padx=20,pady=5)
+    origin_to_combobox.current(0)
 
-# Variables for each combobox
-dropping_station_var = tk.StringVar()
-starting_line_var = tk.StringVar()
+    dest_to_var = tk.StringVar()
+    dest_to_label = tk.Label(root, text="Drop to:")
+    dest_to_label.pack(pady=5)
+    dest_to_combobox = ttk.Combobox(root, textvariable=dest_to_var, values=['BASE', 'Line A', 'Line B', 'Line C'], state="readonly")
+    dest_to_combobox.pack(padx=20,pady=5)
+    dest_to_combobox.current(0)
 
-# Dropdown to select the dropping station
-station_label = ttk.Label(root, text="Select dropping station")
-station_label.pack(pady=5)
+    start_button = tk.Button(root, text="Start Operation", command=lambda: start_robot_thread(origin_to_var.get(), dest_to_var.get()))
+    start_button.pack(padx=20,pady=5)
 
-station_combobox = ttk.Combobox(root, textvariable=dropping_station_var, state="readonly")
-station_combobox['values'] = ('Line A', 'Line B', 'Line C')
-station_combobox.pack(padx=10, pady=10)
-station_combobox.current(0)  # set default selection
+    root.mainloop()
 
-# Dropdown to select the starting line
-line_label = ttk.Label(root, text="Select starting line / dropping station")
-line_label.pack(pady=5)
-
-line_combobox = ttk.Combobox(root, textvariable=starting_line_var, state="readonly")
-line_combobox['values'] = ('Line A - Line C', 'Line A - Line B')
-line_combobox.pack(padx=10, pady=10)
-line_combobox.current(0)  # set default selection
-
-# Button to perform operation
-perform_button = ttk.Button(root, text="Perform Operation", command=perform_operation)
-perform_button.pack(pady=20)
-
-# Start the main event loop
-root.mainloop()
+setup_gui()
