@@ -84,82 +84,28 @@ def lineb_base():
         robot.turn(-90)
         robot.straight(100)
 
-# Run robot operations based on selected paths
+# Implementing Mapping:
+station_functions = {
+    'Line A': (base_linea, linea_base),
+    'Line B': (base_lineb, lineb_base),
+    'Line C': (base_linec, linec_base),
+}
+
+# Run robot operations based on stations:
 def run_robot(origin_to, dest_to):
-    if origin_to != 'BASE':
-        if origin_to == 'Line A' & dest_to=='Line C':
-            base_linea()
-            ev3.screen.print('Item picked from Line A')
-            linea_base()
-            base_linec()
-            ev3.speaker.beep(frequency=261.63, duration=100)  # C note for dropping items in line B
-            ev3.screen.print('Item dropped!')
-            time.sleep(10)             
-            linec_base()
-        elif origin_to == 'Line B' & dest_to=='Line A':
-            base_lineb()
-            ev3.screen.print('Item picked from Line B')
-            lineb_base()
-            base_linea()
-            ev3.speaker.beep(frequency=440.00, duration=100)  # A note for dropping items in line A
-            ev3.screen.print('Item dropped!')
-            time.sleep(10)             
-            linea_base()
-        elif origin_to == 'Line C' & dest_to=='Line A':
-            base_linec()
-            ev3.screen.print('Item picked from Line C')
-            linec_base()
-            base_linea()
-            ev3.speaker.beep(frequency=440.00, duration=100)  # A note for dropping items in line A
-            ev3.screen.print('Item dropped!')
-            time.sleep(10) 
-            linea_base()
-        elif origin_to == 'Line C' & dest_to=='Line B':
-            base_linec()
-            ev3.screen.print('Item picked from Line C')
-            linec_base()
-            base_lineb()
-            ev3.speaker.beep(frequency=261.63, duration=100)  # C note for dropping items in line B
-            ev3.screen.print('Item dropped!')
-            time.sleep(10) 
-            lineb_base()      
-        elif origin_to == 'Line A' & dest_to=='Line B':
-            base_linea()
-            ev3.screen.print('Item picked from Line A')
-            linea_base()
-            base_lineb()
-            ev3.speaker.beep(frequency=261.63, duration=100)  # C note for dropping items in line B
-            ev3.screen.print('Item dropped!')
-            time.sleep(10)             
-            lineb_base()
-        elif origin_to == 'Line B' & dest_to=='Line C':                      
-            base_lineb()
-            ev3.screen.print('Item picked from Line B')
-            lineb_base()
-            base_linec()
-            ev3.speaker.beep(frequency=440.00, duration=100)  # A note for dropping items in line A
-            ev3.screen.print('Item dropped!')
-            time.sleep(10)             
-            linec_base()
-    if dest_to == 'Line A':        
-        base_linea()
-        ev3.speaker.beep(frequency=440.00, duration=100)  # A note for dropping items in line A
-        ev3.screen.print('Item dropped!')
-        time.sleep(10) 
-        linea_base()
-        
-    elif dest_to == 'Line B':        
-        base_lineb()
-        ev3.speaker.beep(frequency=261.63, duration=100)  # C note for dropping items in line B
-        ev3.screen.print('Item dropped!')
-        time.sleep(10) 
-        lineb_base()
-    elif dest_to == 'Line C':        
-        base_linec()
-        ev3.speaker.beep(frequency=329.63, duration=100)  # E note for dropping items in line C
-        ev3.screen.print('Item dropped!')
-        time.sleep(10)         
-        linec_base()
+    if origin_to != 'BASE' and origin_to in station_functions:
+        drop_func, back_func = station_functions[origin_to]
+        drop_func()  # Move from BASE to origin selected
+        ev3.screen.print(f'Item picked from {origin_to}')
+        back_func()  # Move back to BASE
+
+    if dest_to in station_functions and dest_to != 'BASE':
+        drop_func, back_func = station_functions[dest_to]
+        drop_func()  # Move from BASE to destination
+        ev3.speaker.beep(frequency=440.00, duration=100)  # Adjust frequency based on destination
+        ev3.screen.print(f'Item dropped at {dest_to}')
+        time.sleep(10)
+        back_func()  # Move back to BASE
 
 # GUI Setup
 def start_robot_thread(origin_to, dest_to):
@@ -169,15 +115,15 @@ def setup_gui():
     root = tk.Tk()
     root.title("EV3 Robot Controller")
 
-    # Dropdown for "Drop to"
+    # Dropdown for "From:"
     origin_to_var = tk.StringVar()
     origin_to_label = tk.Label(root, text="From:")
     origin_to_label.pack(pady=5)
-    origin_to_combobox = tk.ttk.Combobox(root, textvariable=origin_to_var, values=['Line A', 'Line B', 'Line C','Base'], state="readonly")
+    origin_to_combobox = tk.ttk.Combobox(root, textvariable=origin_to_var, values=['BASE', 'Line A', 'Line B', 'Line C'], state="readonly")
     origin_to_combobox.pack(pady=5)
     origin_to_combobox.current(0)
 
-    # Dropdown for "Pickup to"
+    # Dropdown for "Drop to:"
     dest_to_var = tk.StringVar()
     dest_to_label = tk.Label(root, text="Drop to:")
     dest_to_label.pack(pady=5)
