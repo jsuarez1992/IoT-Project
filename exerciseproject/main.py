@@ -27,6 +27,8 @@ right_motor = Motor(Port.C)
 
 robot = DriveBase(left_motor, right_motor, wheel_diameter=54, axle_track=105)
 
+color = CSensor.color()
+
 def base_linea():
     if color == Color.RED:
         robot.straight(350) 
@@ -84,7 +86,7 @@ def lineb_base():
         robot.turn(-90)
         robot.straight(100)
 
-# Implementing Mapping:
+# Mapping to avoid redundance:
 station_functions = {
     'Line A': (base_linea, linea_base),
     'Line B': (base_lineb, lineb_base),
@@ -118,22 +120,22 @@ def setup_gui():
     # Dropdown for "From:"
     origin_to_var = tk.StringVar()
     origin_to_label = tk.Label(root, text="From:")
-    origin_to_label.pack(pady=5)
+    origin_to_label.pack(padx=20,pady=5)
     origin_to_combobox = tk.ttk.Combobox(root, textvariable=origin_to_var, values=['BASE', 'Line A', 'Line B', 'Line C'], state="readonly")
-    origin_to_combobox.pack(pady=5)
+    origin_to_combobox.pack(padx=20,pady=5)
     origin_to_combobox.current(0)
 
     # Dropdown for "Drop to:"
     dest_to_var = tk.StringVar()
     dest_to_label = tk.Label(root, text="Drop to:")
-    dest_to_label.pack(pady=5)
+    dest_to_label.pack(padx=20,pady=5)
     dest_to_combobox = tk.ttk.Combobox(root, textvariable=dest_to_var, values=['BASE', 'Line A', 'Line B', 'Line C'], state="readonly")
-    dest_to_combobox.pack(pady=5)
+    dest_to_combobox.pack(padx=20,pady=5)
     dest_to_combobox.current(0)
 
     # Start button
     start_button = tk.Button(root, text="Start Operation", command=lambda: start_robot_thread(origin_to_var.get(), dest_to_var.get()))
-    start_button.pack(pady=20)
+    start_button.pack(padx=20,pady=5)
 
     root.mainloop()
 
