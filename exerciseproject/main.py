@@ -95,19 +95,31 @@ station_functions = {
 
 # Run robot operations based on stations:
 def run_robot(origin_to, dest_to):
-    if origin_to != 'BASE' and origin_to in station_functions:
+    if origin_to == 'BASE' or dest_to == 'BASE':
+        ev3.screen.print("Please select both 'From' and 'Drop to' stations.")
+        return
+
+    # Display visual feedback to indicate the operation is starting
+    ev3.screen.print("Operation started...")
+    ev3.light.on(Color.RED)
+
+    if origin_to in station_functions:
         drop_func, back_func = station_functions[origin_to]
         drop_func()  # Move from BASE to origin selected
         ev3.screen.print(f'Item picked from {origin_to}')
         back_func()  # Move back to BASE
 
-    if dest_to in station_functions and dest_to != 'BASE':
+    if dest_to in station_functions:
         drop_func, back_func = station_functions[dest_to]
         drop_func()  # Move from BASE to destination
-        ev3.speaker.beep(frequency=440.00, duration=100)  # Adjust frequency based on destination
+        ev3.speaker.beep(frequency=440.00, duration=100)  # Beep to indicate task completion
         ev3.screen.print(f'Item dropped at {dest_to}')
         time.sleep(10)
         back_func()  # Move back to BASE
+
+    # Provide a confirmation message after the operation completes
+    ev3.screen.print("Operation completed.")
+    ev3.light.off()
 
 # GUI Setup
 def start_robot_thread(origin_to, dest_to):
