@@ -9,6 +9,10 @@ from pybricks.media.ev3dev import SoundFile, ImageFile
 from threading import Thread
 import tkinter as tk
 import time
+import tkinter.ttk as ttk  # Import ttk from tkinter
+
+# Define movement log
+movement_log = []
 
 
 # This program requires LEGO EV3 MicroPython v2.0 or higher.
