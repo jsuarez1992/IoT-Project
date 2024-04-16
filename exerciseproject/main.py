@@ -137,7 +137,32 @@ def setup_gui():
     start_button = tk.Button(root, text="Start Operation", command=lambda: start_robot_thread(origin_to_var.get(), dest_to_var.get()))
     start_button.pack(padx=20,pady=5)
 
+    # Button to display log
+    display_log_button = tk.Button(root, text="Display Log", command=display_log)
+    display_log_button.pack(padx=20, pady=5)
+
+    # Button to clear log
+    clear_log_button = tk.Button(root, text="Clear Log", command=clear_log)
+    clear_log_button.pack(padx=20, pady=5)
+
     root.mainloop()
+
+# Function to display the log
+def display_log():
+    log_window = tk.Toplevel()
+    log_window.title("Movement Log")
+
+    log_text = tk.Text(log_window)
+    log_text.pack()
+
+    for movement in movement_log:
+        log_text.insert(tk.END, f"{movement[0]} to {movement[1]}\n")
+
+# Function to clear the log
+def clear_log():
+    global movement_log
+    movement_log = []
+    ev3.screen.print("Log cleared.")
 
 # Run the GUI
 setup_gui()
