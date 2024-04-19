@@ -1,16 +1,20 @@
 import tkinter as tk
 from tkinter import ttk
-from threading import Thread
-import time
+import socket
+import json
 
-# Simplified function for testing 
-def run_robot(origin_to, dest_to):
-    print(f"Operation started from {origin_to} to {dest_to}")
-    time.sleep(5)
-    print(f"Operation completed from {origin_to} to {dest_to}")
+# Replace HOST and PORT with your EV3 brick's network details
+HOST = 'your.ev3.ip.address'
+PORT = 12345
 
-def start_robot_thread(origin_to, dest_to):
-    Thread(target=run_robot, args=(origin_to, dest_to)).start()
+def send_command_to_ev3(origin_to, dest_to):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect((HOST, PORT))
+        # Here we're sending a simple JSON string, but you can set up your own protocol
+        command = json.dumps({"origin": origin_to, "destination": dest_to})
+        s.sendall(command.encode('utf-8'))
+        data = s.recv(1024)
+    print(f"Received {data.decode('utf-8')}")
 
 # GUI Setup
 def setup_gui():
@@ -31,7 +35,7 @@ def setup_gui():
     dest_to_combobox.pack(padx=20,pady=5)
     dest_to_combobox.current(0)
 
-    start_button = tk.Button(root, text="Start Operation", command=lambda: start_robot_thread(origin_to_var.get(), dest_to_var.get()))
+    start_button = tk.Button(root, text="Start Operation", command=lambda: send_command_to_ev3(origin_to_var.get(), dest_to_var.get()))
     start_button.pack(padx=20,pady=5)
 
     root.mainloop()
