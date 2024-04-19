@@ -1,24 +1,24 @@
-# MQTT Subscriber part
-
 import paho.mqtt.client as paho
 import sys
 
-def onMessage(client, userdata, msg):
-    print(msg.topic + ": " +msg.payload.decode())
-    
-client = paho.Client()
-client.on_message = onMessage
+# Define the on_message callback function
+def on_message(client, userdata, msg):
+    print("Received message:", msg.payload.decode())
 
-if client.connect("local host", 1886, 60) != 0:
+# Connect to the MQTT broker
+client = paho.Client()
+client.on_message = on_message
+if client.connect("localhost", 1883, 60) != 0:  # Assuming MQTT broker is running on localhost
     print("Could not connect to MQTT broker.")
     sys.exit(-1)
 
-client.subscribe("test/status")
+# Subscribe to the topic where the messages will be published by the robot
+client.subscribe("robot/delivery")
 
 try:
-    print("Press CTRL+C to exit...")
+    # Enter a loop to continuously listen for messages
+    print("Waiting for messages...")
     client.loop_forever()
-except:
+except KeyboardInterrupt:
     print("Disconnecting from broker...")
-
-client.disconnect
+    client.disconnect()
