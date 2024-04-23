@@ -15,6 +15,16 @@ from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 import time
 
+from umqtt.robust import MQTTClient
+
+# MQTT setup
+MQTT_ClientID = 'Robot'
+MQTT_Broker = '192.168.218.115' # Change ip address to correct one
+MQTT_Topic_Delivery = 'Delivery'
+client = MQTTClient(MQTT_ClientID, MQTT_Broker)
+
+# Subscribe to the MQTT topic
+client.subscribe(MQTT_Topic_Delivery)
 
 # This program requires LEGO EV3 MicroPython v2.0 or higher.
 # Click "Open user guide" on the EV3 extension tab for more information.
@@ -104,6 +114,15 @@ def run_robot(origin_to, dest_to):
         drop_func()  # Move from BASE to destination
         ev3.speaker.beep(frequency=440.00, duration=100)  # Adjust frequency based on destination
         ev3.screen.print('Item dropped at {dest_to}')
+
+        # Generate timestamp
+        timestamp = time.time()
+        # Prepare message with timestamp
+        message = "Item delivered at {dest_to} - Timestamp: {}".format(timestamp)
+
+        # Publish message to the MQTT broker when item is dropped at destination
+        client.publish(MQTT_Topic_Delivery, message.encode())
+
         time.sleep(10)
         back_func()  # Move back to BASE
 
