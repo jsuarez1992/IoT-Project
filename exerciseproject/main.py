@@ -95,10 +95,12 @@ def run_robot(origin_to, dest_to):
         #CASE 1: Robot goes from BASE(starting point) to one of the lines
         drop_func, back_func = station_functions[dest_to]
         ev3.speaker.beep(frequency=329.63, duration=100)  # Beep for picking item
-        ev3.screen.print('Item picked from BASE)')   
+        ev3.screen.print('Item picked from BASE)')  
+        send_status(client,'Item picked from BASE')
         drop_func()  # Move from BASE to origin selected
         ev3.speaker.beep(frequency=440.00, duration=100)  # Beep for dropping items
         ev3.screen.print('Item dropped at {}.format(dest_to)') #In case it does not work, change to ev3.screen.print('Item dropped at %s' % dest_to)
+        send_status(client,'Item dropped at {dest_to}') 
         time.sleep(10)
         back_func()  # Move back to BASE
 
@@ -110,6 +112,7 @@ def run_robot(origin_to, dest_to):
         drop_func_origin()  # Move from BASE to line selected
         ev3.speaker.beep(frequency=329.63, duration=100)  # Beep for picking item
         ev3.screen.print('Item picked from {}.format(origin_to)') #In case it does not work, change to ev3.screen.print('Item dropped at %s' % origin_to)
+        send_status(client,'Item picked from {origin_to}') 
         time.sleep(10)
         back_func_origin()  # Move back to BASE
         #Second movement: from base to second point, back to base
@@ -117,9 +120,14 @@ def run_robot(origin_to, dest_to):
         drop_func_dest()
         ev3.speaker.beep(frequency=440.00, duration=100)  # Beep for dropping items
         ev3.screen.print('Item dropped at {}.format(dest_to)') #In case it does not work, change to ev3.screen.print('Item dropped at %s' % dest_to)
+        send_status(client,'Item dropped at {dest_to}') 
         time.sleep(10)
-        back_func_dest()  # Move back to BASE        
+        back_func_dest()  # Move back to BASE     
 
+def send_status(client, message):
+    """ Send a status update to the GUI. """
+    response = json.dumps({'status': 'update', 'message': message})
+    client.sendall(response.encode('utf-8'))
 
 # Setup a server socket to listen for commands.
 def setup_server():
