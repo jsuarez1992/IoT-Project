@@ -1,16 +1,23 @@
 #!/usr/bin/env pybricks-micropython
-import socket
+import json
 import json
 from pybricks.hubs import EV3Brick
-from pybricks.ev3devices import (Motor, TouchSensor, ColorSensor,
-                                 InfraredSensor, UltrasonicSensor, GyroSensor)
-from pybricks.parameters import Port, Stop, Direction, Button, Color
-from pybricks.tools import wait, StopWatch, DataLog
+from pybricks.ev3devices import Motor
+from pybricks.parameters import Port
 from pybricks.robotics import DriveBase
-from pybricks.media.ev3dev import SoundFile, ImageFile
+from pybricks.tools import wait
+from umqtt.robust import MQTTClient
 import time
 
+# MQTT setup
+MQTT_ClientID = 'Robot'
+MQTT_Broker = '192.168.218.115' # Change ip address to correct one
+MQTT_Topic_Delivery = 'Delivery'
+client = MQTTClient(MQTT_ClientID, MQTT_Broker)
 
+# Subscribe to the MQTT topic
+client.connect()
+client.subscribe(MQTT_Topic_Delivery)
 
 # This program requires LEGO EV3 MicroPython v2.0 or higher.
 # Click "Open user guide" on the EV3 extension tab for more information.
@@ -90,7 +97,7 @@ station_functions = {
 }
 
 # Run robot operations based on stations, takes two parameters:
-def run_robot(origin_to, dest_to):
+def run_robot(client,origin_to, dest_to):
     if origin_to=='BASE' and dest_to in station_functions:
         #CASE 1: Robot goes from BASE(starting point) to one of the lines
         drop_func, back_func = station_functions[dest_to]
@@ -112,6 +119,7 @@ def run_robot(origin_to, dest_to):
         drop_func_origin()  # Move from BASE to line selected
         ev3.speaker.beep(frequency=329.63, duration=100)  # Beep for picking item
         ev3.screen.print('Item picked from {}.format(origin_to)') #In case it does not work, change to ev3.screen.print('Item dropped at %s' % origin_to)
+        timestamp = time.time()        
         send_status(client,'Item picked from {origin_to}') 
         time.sleep(10)
         back_func_origin()  # Move back to BASE
@@ -120,7 +128,9 @@ def run_robot(origin_to, dest_to):
         drop_func_dest()
         ev3.speaker.beep(frequency=440.00, duration=100)  # Beep for dropping items
         ev3.screen.print('Item dropped at {}.format(dest_to)') #In case it does not work, change to ev3.screen.print('Item dropped at %s' % dest_to)
+        message = "Item delivered at {dest_to} - Timestamp: {}".format(timestamp)        
         send_status(client,'Item dropped at {dest_to}') 
+        client.publish(MQTT_Topic_Delivery, message.encode())
         time.sleep(10)
         back_func_dest()  # Move back to BASE     
 
@@ -129,37 +139,19 @@ def send_status(client, message):
     response = json.dumps({'status': 'update', 'message': message})
     client.sendall(response.encode('utf-8'))
 
-# Setup a server socket to listen for commands.
-def setup_server():
-    host = ''  # Symbolic name meaning all available interfaces
-    port = 12345  # Arbitrary non-privileged port
+# Callback to handle MQTT messages
+def message_callback(topic, msg):
+    command = json.loads(msg)
+    origin_to = command['origin']
+    dest_to = command['destination']
+    run_robot(origin_to, dest_to)
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind((host, port))
+client.set_callback(message_callback)
 
-    s.listen(1)
-    print("Waiting for a connection...")
-    client, address = s.accept()
-    print('Connected by', address)
-    
+# Main loop to keep checking for new messages
+def main_loop():
     while True:
-        data = client.recv(1024).decode('utf-8')
-        if not data:
-            break
-        # Parse the received command.
-        command = json.loads(data)
-        origin_to = command.get('origin')
-        dest_to = command.get('destination')
+        client.check_msg()
+        wait(100)  # Slight delay to reduce CPU usage
 
-        # Run the robot operation.
-        run_robot(origin_to, dest_to)
-
-        # Send a response back to the client.
-        response = json.dumps({'status': 'complete'})
-        client.sendall(response.encode('utf-8'))
-
-    client.close()
-    s.close()
-
-# Start the server to listen for commands from the GUI.
-setup_server()
+main_loop()
