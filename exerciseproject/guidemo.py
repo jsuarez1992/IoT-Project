@@ -4,26 +4,45 @@ from tkinter import messagebox #for input error
 import socket
 import json
 import paho.mqtt.publish as publish
+import threading
 
-# Define the MQTT settings to use
+
 MQTT_HOST= 'replace.for.mqtt.broker.address'
 MQTT_PORT=1883 #has to be the same as used in main.py
 MQTT_TOPIC='ev3/commands'
 
-def send_command_to_ev3(origin_to, dest_to):
-    if origin_to == dest_to and origin_to != 'BASE':  # Check if lines are the same. Otherwise, error message
+def update_status_label(status_label, message):
+    status_label.config(text=message)
+
+def send_command_to_ev3(origin_to, dest_to, status_label):
+    if origin_to == dest_to and origin_to != 'BASE':
         messagebox.showerror("Invalid Input", "Invalid input. Lines cannot be the same.")
     else:
-        command = json.dumps({"origin":origin_to,"destination":dest_to})
+        command = json.dumps({"origin":origin_to, "destination":dest_to})
         try:
-            publish.single(MQTT_TOPIC,payload=command,hostname=MQTT_HOST,port=MQTT_PORT)
-            print(f"Sent command to topic {MQTT_TOPIC}")
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((MQTT_HOST, MQTT_PORT))
+            s.sendall(command.encode('utf-8'))
+
+            while True:
+                data = s.recv(1024).decode('utf-8')
+                if not data:
+                    break
+                response = json.loads(data)
+                if response['status'] == 'update' or response['status'] == 'complete':
+                    status_label.after(0, update_status_label, status_label, response['message']) #implement after to update status_label from thread to avoid GUI freexing
+                    if response['status'] == 'complete':
+                        break
+
+            s.close()
         except Exception as e:
-            messagebox.showerror("Connection Error",f"Failed to send command:{e}")
+            status_label.after(0, update_status_label, status_label, "Connection Error")
+
 
 # GUI Setup
 def setup_gui():
     root = tk.Tk()
+
     root.title("EV3 Robot Controller")
 
     origin_to_var = tk.StringVar()
@@ -40,8 +59,11 @@ def setup_gui():
     dest_to_combobox.pack(padx=20,pady=5)
     dest_to_combobox.current(0)
 
-    start_button = tk.Button(root, text="Start Operation", command=lambda: send_command_to_ev3(origin_to_var.get(), dest_to_var.get()))
+    start_button = tk.Button(root, text="Start Operation", command=lambda: threading.Thread(target=send_command_to_ev3, args=(origin_to_var.get(), dest_to_var.get(), status_label)).start())
     start_button.pack(padx=20,pady=5)
+
+    status_label = tk.Label(root, text="Ready")
+    status_label.pack(padx=20, pady=10)    
 
     root.mainloop()
 
