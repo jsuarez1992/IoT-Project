@@ -1,6 +1,5 @@
 #!/usr/bin/env pybricks-micropython
 import json
-import json
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor
 from pybricks.parameters import Port
@@ -11,7 +10,7 @@ import time
 
 # MQTT setup
 MQTT_ClientID = 'Robot'
-MQTT_Broker = '192.168.218.115' # Change ip address to correct one
+MQTT_Broker = '172.20.10.2' # Change ip address to correct one
 MQTT_Topic_Delivery = 'Delivery'
 client = MQTTClient(MQTT_ClientID, MQTT_Broker)
 
