@@ -6,7 +6,7 @@ import threading
 import paho.mqtt.client as mqtt
 #from paho.mqtt.client import Client  # Direct import of the Client class
 
-MQTT_HOST = '172.20.10.2'  # Use the correct broker IP address
+MQTT_HOST = '169.254.250.193'  # Use the correct broker IP address
 MQTT_PORT = 1883
 MQTT_TOPIC = 'Delivery'
 
@@ -23,6 +23,7 @@ def send_command_to_ev3(origin_to, dest_to, status_label):
         messagebox.showerror("Invalid Input", "Invalid input. Lines cannot be the same.")
     else:
         command = json.dumps({"origin": origin_to, "destination": dest_to})
+        #command = "this is command"
         mqtt_client.publish(MQTT_TOPIC, command)
         update_status_label(status_label, f"Command sent: from {origin_to} to {dest_to}")
 
