@@ -11,4 +11,4 @@ For this assignment, we created a robot application based on Insdustry 4 needs. 
 
 ## Presentation / Demo
 
-The video demo was recorded on Centria, and the presentation was done using Canva. The link can be found [here](https://www.canva.com/design/DAGDRFvCfM0/Vw_HUs1QMABrgZWZ3RHAHA/edit).
+The video demo was recorded on Centria, and the presentation was done using Canva. The recording is upload to Youtube and the link can be found [here](https://youtu.be/8rGpri0Pnkg).
